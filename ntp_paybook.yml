@@ -1,0 +1,43 @@
+---
+- hosts: all
+  become: yes
+  remote_user: opc
+  tasks:
+  - name: Set timezone to Brazil/East
+    timezone:
+       name: Brazil/East
+    become: yes
+    become_method: sudo
+
+  - name: Ensure tzdata package is installed
+    package:
+      name: tzdata
+      state: latest
+
+  - name: Instalando o NTP
+    yum:
+       name: ntp
+       state: latest
+       update_cache: yes
+
+  - name: Habilitando o start do NTP no boot
+    service:
+       name: ntpd
+       enabled: yes
+
+  - name: Iniciando o NTP
+    service: 
+       name: ntpd
+       state: started
+
+  - name: Copiando ntp.conf
+    copy:
+      src: ntp.conf
+      dest: /etc/ntp.conf
+    notify: Restartando o NTP
+
+  handlers:
+  - name: Restartando o NTP
+    service:
+      name: ntpd
+      state: restarted
